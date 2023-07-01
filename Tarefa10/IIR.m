@@ -10,49 +10,96 @@ close all;
 
 format short
 
-Fs  = 48e3;
-N   = 2;
-Q1   = 2;
-Q2   = 6;
-G1   = 3; % 9 dB
-G2   = 4; % 9 dB
-Wo1 = 2000/(Fs/2);
-Wo2 = 20000/(Fs/2);
-BW1 = Wo1/Q1;
-BW2 = Wo2/Q2;
-[B1,A1] = designParamEQ(N,G1,Wo1,BW1,'Orientation','row');
-[B2,A2] = designParamEQ(N,G2,Wo2,BW2,'Orientation','row');
-BQ1 = dsp.SOSFilter('Numerator',B1,'Denominator',A1);
-BQ2 = dsp.SOSFilter('Numerator',B2,'Denominator',A2);
-hfvt = fvtool(BQ1,BQ2,'Fs',Fs,'Color','white');
-legend(hfvt,'BW1 = 200 Hz; Q = 10','BW2 = 2000 Hz; Q = 10');
+clc;
+clear all;
+close all;
 
+format short
 
-frameSize = 64;
-inFs      = 96e3;
+N = 2^13;
+[y Fs] = audioread('sinal_1.wav');
 
-source = dsp.Chirp(InitialFrequency=0,TargetFrequency=48e3, ...
-    SweepTime=8,TargetTime=8,SampleRate=inFs, ...
-    SamplesPerFrame=frameSize,Type="Quadratic");
+t = (0:length(y)-1)/Fs; % Vetor de tempo
 
-SpectrumAnalyzer44p1 = spectrumAnalyzer( ...
-    SampleRate=44100, ...
-    Method="welch", ...
-    AveragingMethod="exponential", ...
-    ForgettingFactor=1e-7, ...
-    ViewType="spectrum-and-spectrogram", ...
-    TimeSpanSource="property",TimeSpan=8, ...
-    Window="kaiser",SidelobeAttenuation=220, ...
-    YLimits=[-250, 50],ColorLimits=[-150, 20], ...
-    PlotAsTwoSidedSpectrum=false);
+% Plot do sinal original
+figure(1)
+plot(t, y);
+title('Sinal Original');
+xlabel('Tempo (s)');
+ylabel('Amplitude');
+xlim([0, 0.05]);
 
-SpectrumAnalyzer96 = spectrumAnalyzer( ...
-    SampleRate=96000, ...
-    Method="welch", ...
-    AveragingMethod="exponential", ...
-    ForgettingFactor=1e-7, ...
-    ViewType="spectrum-and-spectrogram", ...
-    TimeSpanSource="property",TimeSpan=8, ...
-    Window="kaiser",SidelobeAttenuation=220, ...
-    YLimits=[-250, 50],ColorLimits=[-150, 20], ...
-    PlotAsTwoSidedSpectrum=false);
+% Análise Espectral Usando a FFT
+Y = fft1(y,N);
+Y1 = fft(y);
+figure(2)
+stem(abs(Y));
+title('Sinal Original')
+ylabel('|X[k]|');
+xlabel('k');
+xlim([0, N]);
+
+% F  = (k*Fs)/N 
+
+% Usando a função designfilt e projetando os filtros FIR
+% Filtro PassaFaixa - fc ~= 4001,95 Hz
+pbFilt1 = designfilt('bandpassiir','FilterOrder',40, ...
+         'HalfPowerFrequency1',3991,'HalfPowerFrequency2',4011, ...
+         'SampleRate',16000); 
+% fvtool(pbFilt1) % A resposta em frequência do filtro 
+
+y11 = filter(pbFilt1,y); % Fazendo a filtragem do sinal
+
+Y11 = fft1(y11,N);
+figure(3)
+stem(abs(Y11));
+ylabel('|X[k]|');
+xlabel('k');
+title('Sinal-01')
+xlim([1000, 7000]);
+
+% Filtro PassaFaixa - fc ~= 2001,95 Hz
+pbFilt2 = designfilt('bandpassiir','FilterOrder',30, ...
+         'HalfPowerFrequency1',1996,'HalfPowerFrequency2',2006, ...
+         'SampleRate',16000); 
+% fvtool(pbFilt2) % A resposta em frequência do filtro 
+
+y12 = filter(pbFilt2,y); % Fazendo a filtragem do sinal
+
+Y12 = fft1(y12,N);
+figure(4)
+stem(abs(Y12));
+ylabel('|X[k]|');
+xlabel('k');
+title('Sinal-02')
+xlim([500, 7500]);
+
+% Filtro PassaFaixa - fc ~= 841,80 Hz
+pbFilt3 = designfilt('bandpassiir','FilterOrder',30, ...
+         'HalfPowerFrequency1',839,'HalfPowerFrequency2',844, ...
+         'SampleRate',16000); 
+% fvtool(pbFilt3) % A resposta em frequência do filtro 
+
+y13 = filter(pbFilt3,y); % Fazendo a filtragem do sinal
+
+Y13 = fft1(y13,N);
+figure(5)
+stem(abs(Y13));
+ylabel('|X[k]|');
+xlabel('k');
+title('Sinal-03')
+
+% Filtro PassaFaixa - fc ~= 642,58 Hz
+pbFilt4 = designfilt('bandpassiir','FilterOrder',30, ...
+         'HalfPowerFrequency1',640,'HalfPowerFrequency2',645, ...
+         'SampleRate',16000); 
+% fvtool(pbFilt3) % A resposta em frequência do filtro 
+
+y14 = filter(pbFilt4,y); % Fazendo a filtragem do sinal
+
+Y14 = fft1(y14,N);
+figure(6)
+stem(abs(Y14));
+ylabel('|X[k]|');
+xlabel('k');
+title('Sinal-04')
