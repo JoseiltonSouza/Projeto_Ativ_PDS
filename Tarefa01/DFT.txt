@@ -1,0 +1,27 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+import cmath
+import sympy as sp
+
+n = np.arange(16)
+k = n
+N = 16
+x_n = sp.ones(1,len(n)) # Sinal x[n]
+
+for i in range(8,16):
+    x_n[0,i]=0
+
+W_n = sp.exp((-1j*2*math.pi)/N) # Exponencial de ponderação 
+type(N)
+
+F = np.zeros((N,N),dtype=complex)
+F
+
+for i in range(N-1):
+    for j in range(N-1):
+        F[i,j] = W_n**(i*j)
+F
+
+
+X_K = F@x_n.reshape(len(n),1)
